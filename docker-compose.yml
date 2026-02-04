@@ -1,22 +1,27 @@
-# Uso local: docker-compose up
-# Produção: use variáveis de ambiente ou um .env (não versionado)
+# API de Criativos (Gemini). Portainer: defina GEMINI_API_KEY e CREATIVES_BASE_URL nas env do stack.
 services:
   api:
-    build: .
-    image: creatives-api-gemini:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: carrossel_iinsta_lead:latest
+    container_name: carrossel-insta-api
+    restart: unless-stopped
+
     ports:
-      - "${PORT:-3000}:3000"
+      - "3000:3000"
+
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
-      - STORAGE_LOCAL_PATH=/app/storage/creatives
-      - CREATIVES_BASE_URL=${CREATIVES_BASE_URL:-http://localhost:3000/creatives-static}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      NODE_ENV: production
+      PORT: 3000
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      STORAGE_LOCAL_PATH: /app/storage/creatives
+      CREATIVES_BASE_URL: ${CREATIVES_BASE_URL:-http://localhost:3000/creatives-static}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
     volumes:
       - creatives_storage:/app/storage/creatives
-    restart: unless-stopped
 
 volumes:
   creatives_storage:
