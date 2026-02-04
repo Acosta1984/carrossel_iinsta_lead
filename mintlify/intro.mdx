@@ -1,0 +1,25 @@
+---
+title: Introdução
+description: Agente de IA para geração de criativos completos para Instagram
+---
+
+# Agente de Criativos Instagram
+
+O agente interpreta instruções em **linguagem natural** e retorna um conjunto estruturado de elementos para postagens no Instagram:
+
+- **Caption** — texto da legenda (100–300 palavras, máx. 2.200 caracteres)
+- **Visual** — descrição detalhada da arte para designers ou ferramentas gráficas
+- **Hashtags** — entre 5 e 15 hashtags relevantes ao tema
+- **CTA** — chamada para ação alinhada ao objetivo
+
+Quando você informa um **público-alvo (avatar)**, a linguagem e o estilo são adaptados a esse perfil. Caso contrário, o agente segue boas práticas de marketing digital para público geral.
+
+## Endpoint principal
+
+**POST /creative/generate** — Envia tema (obrigatório), objetivo, avatar e tom. Retorna caption, visual, hashtags e cta em JSON. Veja a [API Reference](/creative/generate).
+
+## Próximos passos
+
+- Consulte a [API Reference](/creative/generate) para parâmetros e exemplos.
+- Leia as [Boas práticas](/best-practices) para escrever instruções eficazes.
+- Confira [Limitações e observações](/limitations) técnicas.

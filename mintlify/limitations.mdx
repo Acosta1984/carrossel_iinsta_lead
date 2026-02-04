@@ -1,0 +1,34 @@
+---
+title: Observações técnicas e limitações
+description: Limitações conhecidas e observações para integração
+---
+
+# Observações técnicas e limitações
+
+## Estrutura da resposta
+
+- A resposta **sempre** inclui os quatro blocos: `caption`, `visual`, `hashtags`, `cta`.
+- O campo `caption` é truncado em 2.200 caracteres quando exceder o limite.
+- O array `hashtags` é limitado a 15 itens; itens inválidos (não-string) são filtrados.
+
+## Autenticação e ambiente
+
+- A API de criativos (POST /creative/generate) **não exige** autenticação na implementação atual.
+- Em produção, recomenda-se proteger o endpoint (API key, JWT ou outro mecanismo).
+
+## Modelo de IA
+
+- O agente utiliza um modelo de linguagem (Gemini) para geração de texto.
+- Latência típica: 2–8 segundos por requisição, dependendo do provedor e da carga.
+- Em caso de indisponibilidade ou quota excedida, a API retorna erro 500 com mensagem descritiva.
+
+## Rate limits e custo
+
+- Os limites de taxa dependem do plano do provedor de IA (ex.: Google AI Studio).
+- Recomenda-se implementar retry com backoff e monitorar uso para evitar exceder cotas.
+
+## Evolução da API
+
+- Novos campos de entrada podem ser adicionados no futuro (ex.: idioma, tamanho máximo de caption).
+- A documentação Mintlify será atualizada para refletir mudanças na estrutura de entrada e saída.
+- Mantenha a integração resiliente a campos adicionais no JSON de resposta.

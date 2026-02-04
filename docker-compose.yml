@@ -1,0 +1,22 @@
+# Uso local: docker-compose up
+# Produção: use variáveis de ambiente ou um .env (não versionado)
+services:
+  api:
+    build: .
+    image: creatives-api-gemini:local
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - STORAGE_LOCAL_PATH=/app/storage/creatives
+      - CREATIVES_BASE_URL=${CREATIVES_BASE_URL:-http://localhost:3000/creatives-static}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - creatives_storage:/app/storage/creatives
+    restart: unless-stopped
+
+volumes:
+  creatives_storage:

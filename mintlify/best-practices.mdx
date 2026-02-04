@@ -1,0 +1,60 @@
+---
+title: Boas práticas para instruções
+description: Como escrever instruções eficazes para o agente de criativos Instagram
+---
+
+# Boas práticas para escrita de instruções
+
+Seguindo estas diretrizes, você obtém respostas mais consistentes e alinhadas ao objetivo.
+
+## Campo obrigatório: tema
+
+- Seja **específico**: em vez de "finanças", use "planejamento financeiro para começar a investir".
+- Inclua o **foco** do conteúdo: educar, inspirar, promover produto, etc., quando não usar o campo `objetivo`.
+
+## Campos opcionais
+
+### objetivo
+
+Use quando quiser direcionar o tipo de engajamento:
+
+- **informar** — conteúdo educativo
+- **converter** — foco em ação (cadastro, compra, clique)
+- **engajar** — likes, comentários, compartilhamentos
+
+### avatar
+
+Descreva o público-alvo em poucas palavras. O agente adapta linguagem e exemplos:
+
+- "mães solo"
+- "empreendedores iniciantes"
+- "jovens 18–24 anos interessados em fitness"
+
+### tom
+
+Define o estilo de escrita da caption e da CTA:
+
+- **empático** — acolhedor, próximo
+- **direto** — objetivo, sem rodeios
+- **inspirador** — motivacional, aspiração
+
+## Exemplo completo
+
+Requisição com todos os campos preenchidos:
+
+```json
+{
+  "tema": "planejamento financeiro",
+  "objetivo": "educar",
+  "avatar": "mães solo",
+  "tom": "empático"
+}
+```
+
+A resposta terá caption e CTA adaptados a mães solo, com tom empático e foco em educação.
+
+## O que evitar
+
+- **Tema vazio ou genérico demais** — o agente precisa de um eixo claro.
+- **Avatar muito longo** — uma frase curta é suficiente.
+- **Múltiplos objetivos em um único pedido** — prefira um objetivo por requisição.

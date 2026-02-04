@@ -1,0 +1,409 @@
+openapi: 3.0.3
+info:
+  title: Creatives API (Gemini 2.5 Flash Image)
+  version: 1.0.0
+  description: |
+    API de geração de criativos estáticos via Nano Banana (gemini-2.5-flash-image).
+    **Campos obrigatórios** aparecem com asterisco (*) no Swagger. Ao clicar em "Try it out", o exemplo é preenchido no corpo da requisição.
+
+paths:
+  /creatives:
+    post:
+      summary: Gera lote de criativos
+      description: Envia briefing de marca e recebe imagens geradas pelo Gemini 2.5 Flash Image. Campos obrigatórios - brand.name, creative_spec.n_variations, creative_spec.aspect_ratios.
+      operationId: createCreatives
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreativesRequest'
+            example:
+              brand:
+                name: "Deia"
+                tone: "modern"
+                colors: ["Azul", "#1a73e8"]
+              campaign:
+                name: "Lançamento"
+                objective: "awareness"
+                cta: "Saiba mais"
+              creative_spec:
+                n_variations: 3
+                aspect_ratios: ["1:1"]
+                image_style: "ugc_cinematic"
+                quality: "high"
+              product:
+                name: "Produto Premium"
+                description: "Linha premium da marca"
+                category: "lifestyle"
+      responses:
+        '200':
+          description: Job concluído (síncrono)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativesJobResponse'
+        '202':
+          description: Job aceito (assíncrono)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativesJobAccepted'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /creatives/{job_id}:
+    get:
+      summary: Status do job
+      description: Retorna status e resultados do job de geração. job_id é obrigatório no path.
+      operationId: getJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          description: ID do job retornado em POST /creatives. Obrigatório.
+          schema: { type: string, example: "job_3b026698" }
+      responses:
+        '200':
+          description: Status e resultados quando concluído
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativesJobResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /creatives/asset/{creative_id}:
+    get:
+      summary: Detalhe de um criativo
+      description: Retorna um criativo pelo ID (creative_id retornado em results). creative_id é obrigatório no path.
+      operationId: getCreative
+      parameters:
+        - name: creative_id
+          in: path
+          required: true
+          description: ID do criativo (ex. cr_2bdd9093). Obrigatório.
+          schema: { type: string, example: "cr_2bdd9093" }
+      responses:
+        '200':
+          description: Criativo com meta.model = gemini-2.5-flash-image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativeResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /creative/generate:
+    post:
+      summary: Gera criativo completo para Instagram
+      description: |
+        Agente de IA que gera criativos completos para publicações no Instagram a partir de instruções em linguagem natural.
+        Retorna caption, descrição visual, hashtags e CTA. Comportamento se adapta ao público-alvo (avatar) quando informado.
+      operationId: generateCreative
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreativeGenerateRequest'
+            example:
+              tema: "planejamento financeiro"
+              objetivo: "educar"
+              avatar: "mães solo"
+              tom: "empático"
+      responses:
+        '200':
+          description: Criativo completo (caption, visual, hashtags, cta)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativeGenerateResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /prompts/preview:
+    post:
+      summary: Preview de prompts (Nano Banana–ready)
+      description: Retorna os prompts que seriam usados na geração, sem gerar imagens. Útil para validar o briefing. Campo obrigatório - brand.name.
+      operationId: previewPrompts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreviewPromptsRequest'
+            example:
+              brand:
+                name: "Deia"
+                tone: "modern"
+                colors: ["Azul"]
+              campaign:
+                objective: "awareness"
+              product:
+                name: "Produto Premium"
+                description: "Linha premium"
+              creative_spec:
+                aspect_ratios: ["1:1", "4:5"]
+                image_style: "ugc_cinematic"
+              templates: ["hero_product", "lifestyle_context"]
+      responses:
+        '200':
+          description: Lista de prompts por template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewPromptsResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  schemas:
+    CreateCreativesRequest:
+      type: object
+      required: [brand, creative_spec]
+      description: Corpo para geração de criativos. Obrigatórios - brand, creative_spec (com n_variations e aspect_ratios).
+      properties:
+        brand:
+          type: object
+          required: [name]
+          description: Dados da marca. Obrigatório.
+          properties:
+            name:
+              type: string
+              description: Nome da marca. Obrigatório.
+              example: "Deia"
+            tone:
+              type: string
+              description: Tom de voz (ex. modern, classic). Opcional.
+              example: "modern"
+            colors:
+              type: array
+              items: { type: string }
+              description: Paleta de cores (nomes ou hex). Opcional.
+              example: ["Azul", "#1a73e8"]
+            values:
+              type: array
+              items: { type: string }
+              description: Valores da marca. Opcional.
+        campaign:
+          type: object
+          description: Dados da campanha. Opcional.
+          properties:
+            name:
+              type: string
+              description: Nome da campanha. Opcional.
+            objective:
+              type: string
+              description: Objetivo (ex. awareness, conversion). Opcional.
+            cta:
+              type: string
+              description: Call-to-action. Opcional.
+        creative_spec:
+          type: object
+          required: [n_variations, aspect_ratios]
+          description: Especificação da geração. n_variations e aspect_ratios são obrigatórios.
+          properties:
+            n_variations:
+              type: integer
+              minimum: 1
+              maximum: 20
+              description: Quantidade de imagens a gerar (1 a 20). Obrigatório.
+              example: 3
+            aspect_ratios:
+              type: array
+              items: { enum: ["1:1", "4:5", "9:16"] }
+              description: Proporções das imagens. Pelo menos uma. Obrigatório.
+              example: ["1:1"]
+            image_style:
+              type: string
+              enum: [ugc_cinematic, photorealistic, editorial, minimal]
+              description: Estilo visual. Opcional. Default ugc_cinematic.
+            quality:
+              type: string
+              enum: [standard, high]
+              description: Nível de qualidade. Opcional.
+            safety_level:
+              type: string
+              enum: [default, low, high]
+              description: Nível de segurança do conteúdo. Opcional.
+        product:
+          type: object
+          description: Dados do produto. Opcional.
+          properties:
+            name:
+              type: string
+              description: Nome do produto. Opcional.
+            description:
+              type: string
+              description: Descrição do produto. Opcional.
+            category:
+              type: string
+              description: Categoria. Opcional.
+        constraints:
+          type: object
+          description: Restrições de conteúdo. Opcional.
+          properties:
+            avoid:
+              type: array
+              items: { type: string }
+              description: Elementos a evitar no prompt. Opcional.
+            must_include:
+              type: array
+              items: { type: string }
+              description: Elementos que devem aparecer. Opcional.
+        character_identity:
+          type: string
+          description: Bloco de identidade visual fixa da personagem (repetido literalmente em todas as gerações). Se omitido, usa personagem padrão. Opcional.
+        user_id:
+          type: string
+          description: ID do usuário (rastreio). Opcional.
+
+    CreativeResult:
+      type: object
+      properties:
+        creative_id: { type: string }
+        aspect_ratio: { type: string, enum: ["1:1", "4:5", "9:16"] }
+        prompt_final: { type: string }
+        image_url: { type: string, format: uri }
+        meta:
+          type: object
+          properties:
+            model: { type: string, example: "gemini-2.5-flash-image" }
+            mimeType: { type: string }
+            bytes: { type: integer }
+            seed: { type: integer }
+            generated_at: { type: string, format: date-time }
+
+    CreativesJobResponse:
+      type: object
+      properties:
+        job_id: { type: string }
+        status: { type: string, enum: [completed, failed, processing] }
+        results: { type: array, items: { $ref: '#/components/schemas/CreativeResult' } }
+        error: { type: string }
+
+    CreativesJobAccepted:
+      type: object
+      properties:
+        job_id: { type: string }
+        status: { const: "accepted" }
+
+    CreativeGenerateRequest:
+      type: object
+      required: [tema]
+      description: Entrada do agente de criativos Instagram.
+      properties:
+        tema:
+          type: string
+          description: Tema principal do post. Obrigatório.
+          example: "planejamento financeiro"
+        objetivo:
+          type: string
+          description: Objetivo da publicação (ex. informar, converter, engajar). Opcional.
+          example: "educar"
+        avatar:
+          type: string
+          description: Persona/público-alvo (ex. mães solo, empreendedores iniciantes). Opcional.
+          example: "mães solo"
+        tom:
+          type: string
+          description: Estilo de linguagem (ex. empático, direto, inspirador). Opcional.
+          example: "empático"
+
+    CreativeGenerateResponse:
+      type: object
+      required: [caption, visual, hashtags, cta]
+      description: Saída do agente - criativo completo para Instagram.
+      properties:
+        caption:
+          type: string
+          description: Texto principal do post (100–300 palavras, máx. 2.200 caracteres).
+        visual:
+          type: string
+          description: Descrição detalhada do criativo visual para designers ou ferramentas gráficas.
+        hashtags:
+          type: array
+          items: { type: string }
+          description: Entre 5 e 15 hashtags relevantes ao tema.
+        cta:
+          type: string
+          description: Chamada para ação final.
+
+    PreviewPromptsRequest:
+      type: object
+      required: [brand]
+      description: Corpo para preview de prompts. Apenas brand é obrigatório.
+      properties:
+        brand:
+          $ref: '#/components/schemas/CreateCreativesRequest/properties/brand'
+        campaign:
+          type: object
+          description: Campanha. Opcional.
+          properties:
+            name: { type: string }
+            objective: { type: string }
+            cta: { type: string }
+        product:
+          type: object
+          description: Produto. Opcional.
+          properties:
+            name: { type: string }
+            description: { type: string }
+            category: { type: string }
+        creative_spec:
+          type: object
+          description: Especificação para o preview. Opcional.
+          properties:
+            image_style: { type: string }
+            aspect_ratios:
+              type: array
+              items: { type: string, enum: ["1:1", "4:5", "9:16"] }
+        templates:
+          type: array
+          items: { enum: [hero_product, lifestyle_context, ugc_style, graphic_poster] }
+          description: Templates de prompt a incluir. Opcional.
+        character_identity:
+          type: string
+          description: Bloco de identidade visual fixa da personagem (opcional). Se omitido, usa o padrão.
+
+    PreviewPromptsResponse:
+      type: object
+      properties:
+        prompts:
+          type: array
+          items:
+            type: object
+            properties:
+              template: { type: string }
+              prompt: { type: string }
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object }
+        timestamp: { type: string, format: date-time }
+
+  responses:
+    ValidationError:
+      description: Dados inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { code: "VALIDATION_ERROR", message: "Dados inválidos", details: {} }
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    InternalError:
+      description: Erro interno
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

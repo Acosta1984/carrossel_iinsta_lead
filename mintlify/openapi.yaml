@@ -1,0 +1,105 @@
+openapi: 3.0.3
+info:
+  title: Agente de Criativos Instagram
+  version: 1.0.0
+  description: |
+    API do agente de IA que gera criativos completos para publicações no Instagram
+    (caption, descrição visual, hashtags, CTA) a partir de instruções em linguagem natural.
+
+servers:
+  - url: http://localhost:3000
+    description: Ambiente local
+  - url: https://api.example.com
+    description: Produção (exemplo)
+
+paths:
+  /creative/generate:
+    post:
+      summary: Gera criativo completo para Instagram
+      description: |
+        Interpreta instruções em linguagem natural e retorna um conjunto estruturado:
+        **caption** (legenda), **visual** (descrição da arte), **hashtags** e **cta** (chamada para ação).
+        O comportamento se adapta ao público-alvo (avatar) quando informado.
+      operationId: generateCreative
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreativeGenerateRequest'
+            example:
+              tema: "planejamento financeiro"
+              objetivo: "educar"
+              avatar: "mães solo"
+              tom: "empático"
+      responses:
+        '200':
+          description: Criativo completo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreativeGenerateResponse'
+              example:
+                caption: "Você não precisa fazer tudo sozinha. O planejamento financeiro é um ato de cuidado..."
+                visual: "Imagem de uma mãe sorrindo com o filho no colo, cores suaves em tons pastéis..."
+                hashtags: ["#PlanejamentoFinanceiro", "#MãesSolo", "#FinançasPessoais", "#AutocuidadoFinanceiro"]
+                cta: "Salve este post para revisar depois e compartilhe com outras mães."
+        '400':
+          description: Dados inválidos (ex. tema vazio)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500':
+          description: Erro interno ou indisponibilidade do modelo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  schemas:
+    CreativeGenerateRequest:
+      type: object
+      required: [tema]
+      properties:
+        tema:
+          type: string
+          description: "**Obrigatório.** Tema principal do post (ex. planejamento financeiro)."
+          example: "planejamento financeiro"
+        objetivo:
+          type: string
+          description: "**Opcional.** Objetivo da publicação (ex. informar, converter, engajar)."
+          example: "educar"
+        avatar:
+          type: string
+          description: "**Opcional.** Persona/público-alvo (ex. mães solo, empreendedores iniciantes). Quando informado, a linguagem é adaptada."
+          example: "mães solo"
+        tom:
+          type: string
+          description: "**Opcional.** Estilo de linguagem (ex. empático, direto, inspirador)."
+          example: "empático"
+
+    CreativeGenerateResponse:
+      type: object
+      required: [caption, visual, hashtags, cta]
+      properties:
+        caption:
+          type: string
+          description: Texto principal do post (100–300 palavras, máx. 2.200 caracteres).
+        visual:
+          type: string
+          description: Descrição detalhada do criativo visual para uso por designers ou ferramentas gráficas.
+        hashtags:
+          type: array
+          items: { type: string }
+          description: Entre 5 e 15 hashtags relevantes ao tema.
+        cta:
+          type: string
+          description: Chamada para ação final, alinhada ao objetivo.
+
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object }
+        timestamp: { type: string, format: date-time }
