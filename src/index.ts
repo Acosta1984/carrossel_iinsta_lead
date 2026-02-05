@@ -25,6 +25,16 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Raiz: redireciona para Swagger UI (evita "Cannot GET /" ao acessar insta.viol1n.com)
+app.get("/", (_req, res) => {
+  res.redirect(302, "/api-docs/");
+});
+
+// robots.txt (evita 404 em crawlers)
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain").send("User-agent: *\nAllow: /\nAllow: /api-docs\nAllow: /health\n");
+});
+
 // Swagger UI – documentação interativa
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDoc, {
   customCss: ".swagger-ui .topbar { display: none }",
