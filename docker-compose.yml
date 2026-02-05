@@ -1,4 +1,5 @@
-# API de Criativos (Gemini). Portainer: defina GEMINI_API_KEY e CREATIVES_BASE_URL nas env do stack.
+# API de Criativos (Gemini). Com Traefik: sem ports no host (evita conflito "port already allocated");
+# Traefik acessa o container pela rede. Crie .env no servidor com GEMINI_API_KEY (e CREATIVES_BASE_URL).
 services:
   api:
     build:
@@ -8,8 +9,10 @@ services:
     container_name: carrossel-insta-api
     restart: unless-stopped
 
-    ports:
-      - "3000:3000"
+    # Crie .env no mesmo diretório do compose com GEMINI_API_KEY=xxx (Compose carrega automaticamente).
+    # Sem mapeamento de porta: Traefik roteia pela rede. Se precisar acessar direto na porta 3000, descomente:
+    # ports:
+    #   - "3000:3000"
 
     environment:
       NODE_ENV: production
